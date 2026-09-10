@@ -38,7 +38,7 @@
     // Base32 secret shared with Google Authenticator. Use the "Set up" button
     // in the workbook to generate one, scan or type it into the app, then
     // paste it here. Leave blank to skip the 6-digit step.
-    TOTP_SECRET: '',
+    TOTP_SECRET: 'DHERKQB2WUVL6GB3D7TIDOA3HICPVJZ6',
 
     // How long an unlock lasts before it asks again.
     SESSION_HOURS: 8
