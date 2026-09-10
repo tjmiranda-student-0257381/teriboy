@@ -214,9 +214,35 @@
         row: row,
         name: row.getAttribute('data-name'),
         price: parseFloat(row.getAttribute('data-price')),
+        isMain: row.hasAttribute('data-main'),
         qty: parseInt($('output', row).value || '0', 10)
       };
     });
+  }
+
+  // Diet +$1.50, Regular included, Extra +$3.99 (+$5.99 with a Monster).
+  // The upcharge is per main dish - sides and drinks are unaffected.
+  function portionInfo() {
+    var picked = $('input[name="portion"]:checked');
+    if (!picked) { return { name: 'Regular', fee: 0, soda: '' }; }
+    var name = picked.value;
+    var fee = parseFloat(picked.getAttribute('data-fee')) || 0;
+    var soda = '';
+    if (name === 'Extra') {
+      var select = $('#soda');
+      if (select) {
+        soda = select.value;
+        var opt = select.options[select.selectedIndex];
+        if (opt && opt.getAttribute('data-fee')) { fee = parseFloat(opt.getAttribute('data-fee')); }
+      }
+    }
+    return { name: name, fee: fee, soda: soda };
+  }
+
+  function portionLabel(portion, mains) {
+    var label = portion.name + ' portion' + (mains === 1 ? '' : 's');
+    if (portion.name === 'Extra' && portion.soda) { label += ' with ' + portion.soda; }
+    return label + ' × ' + mains;
   }
 
   function updateSummary() {
@@ -225,8 +251,24 @@
 
     var items = orderItems().filter(function (i) { return i.qty > 0; });
     var subtotal = items.reduce(function (sum, i) { return sum + i.price * i.qty; }, 0);
-    var fee = items.length === 0 || subtotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
-    var total = subtotal + fee;
+
+    var portion = portionInfo();
+    var mains = items.reduce(function (n, i) { return n + (i.isMain ? i.qty : 0); }, 0);
+    var portionTotal = portion.fee * mains;
+
+    var food = subtotal + portionTotal;
+    var fee = items.length === 0 || food >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
+    var total = food + fee;
+
+    var pRow = $('#sum-portion-row');
+    if (pRow) {
+      var showPortion = mains > 0 && portionTotal > 0;
+      pRow.hidden = !showPortion;
+      if (showPortion) {
+        $('#sum-portion-label').textContent = portionLabel(portion, mains);
+        $('#sum-portion').textContent = money(portionTotal);
+      }
+    }
 
     list.innerHTML = items.length
       ? items.map(function (i) {
@@ -249,10 +291,13 @@
     var hidden = $('#order-details');
     if (hidden) {
       hidden.value = (lines.length ? lines.join('\n') : '(no items selected)') +
+        (mains > 0 ? '\n' + portionLabel(portion, mains) + ' = ' + money(portionTotal) : '') +
         '\n----------------------------------------' +
         '\nSubtotal: ' + money(subtotal) +
+        (portionTotal > 0 ? '\nPortion upcharge: ' + money(portionTotal) : '') +
         '\nDelivery: ' + (items.length && fee === 0 ? 'FREE' : money(fee)) +
         '\nTOTAL: ' + money(total) +
+        '\nPortion: ' + portion.name + (portion.soda ? ' (' + portion.soda + ')' : '') +
         '\nDelivery date: ' + (dateEl && dateEl.value ? dateEl.value : '-') +
         '\nDelivery slot: ' + (slotEl ? slotEl.value : '-');
     }
@@ -293,6 +338,21 @@
     $$('input[name="delivery_slot"]').forEach(function (r) {
       r.addEventListener('change', updateSummary);
     });
+
+    // Portion size, and the soda choice that only matters for Extra.
+    var sodaField = $('#soda-field');
+    $$('input[name="portion"]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        if (sodaField) { sodaField.hidden = r.value !== 'Extra' || !r.checked; }
+        updateSummary();
+      });
+    });
+    var soda = $('#soda');
+    if (soda) { soda.addEventListener('change', updateSummary); }
+    if (sodaField) {
+      var current = $('input[name="portion"]:checked');
+      sodaField.hidden = !current || current.value !== 'Extra';
+    }
 
     // "Add to order" links coming from the menu page: order.html?add=Chicken+Teriyaki
     var wanted = new URLSearchParams(location.search).get('add');
@@ -346,12 +406,14 @@
     var area = $('input[name="base_area"]:checked');
     var hint = $('#delivery-date-hint');
     var total = $('#sum-total');
+    var portionRow = $('#sum-portion-label');
     return {
       total: total ? total.textContent : '',
       slot: slot ? slot.value : '',
       payment: pay ? pay.value : '',
       area: area ? area.value : '',
-      dateText: hint ? hint.textContent.replace(/^Delivering\s*/, '').replace(/\.$/, '') : ''
+      dateText: hint ? hint.textContent.replace(/^Delivering\s*/, '').replace(/\.$/, '') : '',
+      portion: (portionRow && !$('#sum-portion-row').hidden) ? portionRow.textContent : ''
     };
   }
 
@@ -405,6 +467,7 @@
         '<h2>Order received</h2>' +
         '<p class="lead">Delivering <strong>' + (snap.dateText || 'as scheduled') + '</strong>' +
         (snap.slot ? ' &mdash; ' + snap.slot : '') + (snap.area ? ', ' + snap.area : '') + '.' +
+        (snap.portion ? ' ' + snap.portion + '.' : '') +
         ' A confirmation is on its way to your inbox.</p>' +
       '</div>' +
       (paidByZelle ? zelleBlock(info, snap) : cashBlock(snap)) +
@@ -525,6 +588,30 @@
     });
   }
 
+  /* ---------------------------------------------------------- back to top */
+  function initToTop() {
+    var btn = $('.to-top');
+    if (!btn) { return; }
+    btn.hidden = false;                       // JS is running; the class handles visibility
+
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ticking = false;
+    var sync = function () {
+      btn.classList.toggle('is-in', window.pageYOffset > 420);
+      ticking = false;
+    };
+    sync();
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(sync); }
+    }, { passive: true });
+
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+      var skip = $('.skip');
+      if (skip) { skip.focus({ preventScroll: true }); }
+    });
+  }
+
   /* ------------------------------------------------------------------ misc */
   function initMisc() {
     $$('[data-year]').forEach(function (el) { el.textContent = new Date().getFullYear(); });
@@ -559,6 +646,7 @@
     initDateField();
     initOrderBuilder();
     initForms();
+    initToTop();
     initMisc();
   });
 })();

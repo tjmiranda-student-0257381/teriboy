@@ -55,6 +55,62 @@ timestamp, so two identical codes remain easy to tell apart — but if order vol
 clean fix is a small backend (or a form service with a sequence field) that hands out the number
 authoritatively. Until then, treat the code as a matching hint rather than a guaranteed unique key.
 
+## Portion sizes
+
+Every main is built to one of three sizes, chosen once at checkout and applied to **each main
+dish** in the order. Sides and drinks are unaffected.
+
+| Portion | What is on the plate | Upcharge per main |
+| --- | --- | --- |
+| Diet | 1 cup of rice, extra vegetables, full protein | **+$1.50** |
+| Regular | 2 cups of rice, vegetables, protein | Included |
+| Extra | 2.5 cups of rice, more vegetables, more protein, soda | **+$3.99** |
+| Extra with a Monster | as above, with a Monster instead of a regular soda | **+$5.99** |
+
+Choosing Extra reveals the soda selector; picking Monster swaps the $3.99 for $5.99. The order
+summary shows the maths in plain language — "Extra portions with Monster × 3 = $17.97" — and the
+same line goes into the order email. The upcharge counts toward the $60 free-delivery threshold.
+
+Prices live in two places and must be changed together: `data-fee` attributes on the portion
+radios in [order.html](order.html), and `PORTION_FEES` / `MONSTER_FEE` in
+[`assets/js/admin.js`](assets/js/admin.js).
+
+## The workbook — [admin.html](admin.html)
+
+An eight-tab spreadsheet for running the business. It is **not linked from the site** and is
+excluded in `robots.txt`; open it directly at `/admin.html`.
+
+| Tab | What it does |
+| --- | --- |
+| 1 · Customers | One row per customer, keyed by phone number. Orders, lifetime spend and last order date are calculated. |
+| 2 · Daily | Where orders are recorded — the ledger everything else reads from. Plus a per-day rollup. |
+| 3 · Weekly | Monday-start weeks. |
+| 4 · Monthly | Calendar months. |
+| 5 · Quarterly | Q1–Q4. |
+| 6 · Semi-annual | H1 January–June, H2 July–December. |
+| 7 · Annual | One row per year. |
+| 8 · Summary | Expense ledger, total income, total expenses, net profit, margin, and a category breakdown. |
+
+**How it fits together.** You only ever type into three places: customers (tab 1), orders
+(tab 2) and expenses (tab 8). Tabs 3–7 are computed views of those rows — every report shows
+orders, unique customers, food, portion upcharges, delivery, income, expenses and net profit,
+with a totals row. Cancelled orders are excluded from income everywhere.
+
+Entering an order for an unknown phone number **adds that customer automatically**, and typing a
+known number fills in the name. Portion upcharges are computed with the same rules as the
+website, so the books and the order form can never drift apart.
+
+**Where the data lives.** In this browser's `localStorage`, on this device. Nothing is uploaded.
+That means:
+
+- Clearing site data wipes the books. **Use the Backup button** — it writes a JSON file you can
+  keep, and Restore reads it back.
+- The books do not sync between your phone and your laptop. Backup and restore to move them.
+- Every tab has an **Export CSV** button if you would rather work in Excel or Sheets.
+
+If the business outgrows this — more than one person entering orders, or you want the website's
+orders to land here automatically — that is the point to move the ledger to a real backend.
+
 ## Pages
 
 | File | Purpose |
@@ -70,6 +126,7 @@ authoritatively. Until then, treat the code as a matching hint rather than a gua
 | [terms.html](terms.html) | Terms of Service |
 | [privacy.html](privacy.html) | Privacy Policy (covers Formspree and what Zelle does not share) |
 | [404.html](404.html) | Not-found page |
+| [admin.html](admin.html) | The workbook — internal, unlisted, `noindex` |
 
 Header menu: Home · About · Services · Menu · Order · Video · Contact
 Footer menu: Terms · Privacy · FAQs (plus Explore, Support and kitchen details)
@@ -164,6 +221,11 @@ Black theme, red accent, gold detailing.
   Now button fit on one screen with no scrolling, down to short landscape phones. The brand and
   close button are layered above it so the menu can always be dismissed.
 - Content is visible with JavaScript disabled; `prefers-reduced-motion` is honoured.
+- **Motion**: `scroll-behavior: smooth` site-wide, so in-page links and the back-to-top button
+  glide rather than jump. The mobile menu opens over 0.62s with its links easing in on a
+  stagger, instead of snapping open.
+- **Back to top**: a round button appears bottom-right once you are 420px down the page, and
+  hides itself again at the top and whenever the mobile menu is open.
 - Responsive to 320px.
 
 ## Deploying

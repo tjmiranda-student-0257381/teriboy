@@ -138,9 +138,45 @@
         <div class="panel reveal">
           <div class="panel__head"><span class="panel__step">2</span><h2>What are we grilling?</h2></div>
 
+          <div class="field">
+            <label>Portion size <span class="req">*</span></label>
+            <div class="portions">
+              <label class="radio-card portion">
+                <input type="radio" name="portion" value="Diet" data-fee="1.50">
+                <span>
+                  <strong>Diet</strong><em class="portion__fee">+$1.50</em>
+                  <small>1 cup of rice, extra vegetables, full protein</small>
+                </span>
+              </label>
+              <label class="radio-card portion">
+                <input type="radio" name="portion" value="Regular" data-fee="0" checked>
+                <span>
+                  <strong>Regular</strong><em class="portion__fee">Included</em>
+                  <small>2 cups of rice, vegetables, protein</small>
+                </span>
+              </label>
+              <label class="radio-card portion">
+                <input type="radio" name="portion" value="Extra" data-fee="3.99">
+                <span>
+                  <strong>Extra</strong><em class="portion__fee">+$3.99</em>
+                  <small>2.5 cups of rice, more vegetables, more protein, soda</small>
+                </span>
+              </label>
+            </div>
+            <span class="hint">Applies to each main dish. Sides and drinks are not affected.</span>
+          </div>
+
+          <div class="field" id="soda-field" hidden>
+            <label for="soda">Which soda comes with the Extra portion?</label>
+            <select id="soda" name="soda">
+              <option value="Regular soda" data-fee="3.99">Regular soda &mdash; included in the $3.99</option>
+              <option value="Monster" data-fee="5.99">Monster &mdash; portion upcharge becomes $5.99</option>
+            </select>
+          </div>
+
           <h4 class="gold" style="font-family:var(--ff-body);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;margin:0 0 .9rem">Mains</h4>
           <div class="pick">
-            <div class="pick-row" data-name="Chicken Teriyaki" data-price="13.50">
+            <div class="pick-row" data-main="1" data-name="Chicken Teriyaki" data-price="13.50">
               <div><h3>Chicken Teriyaki</h3><p>Koji-marinated thigh, house glaze, sesame</p></div>
               <span class="price">$13.50</span>
               <div class="stepper">
@@ -149,7 +185,7 @@
                 <button type="button" data-step="up" aria-label="Add one Chicken Teriyaki">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Karaage Teriyaki" data-price="14.50">
+            <div class="pick-row" data-main="1" data-name="Karaage Teriyaki" data-price="14.50">
               <div><h3>Karaage Teriyaki</h3><p>Twice-fried chicken tossed in warm glaze</p></div>
               <span class="price">$14.50</span>
               <div class="stepper">
@@ -158,7 +194,7 @@
                 <button type="button" data-step="up" aria-label="Add one Karaage Teriyaki">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Short Rib Teriyaki" data-price="19.50">
+            <div class="pick-row" data-main="1" data-name="Short Rib Teriyaki" data-price="19.50">
               <div><h3>Short Rib Teriyaki</h3><p>Black pepper and chilli glaze, medium heat</p></div>
               <span class="price">$19.50</span>
               <div class="stepper">
@@ -167,7 +203,7 @@
                 <button type="button" data-step="up" aria-label="Add one Short Rib Teriyaki">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Pork Belly Teriyaki" data-price="16.50">
+            <div class="pick-row" data-main="1" data-name="Pork Belly Teriyaki" data-price="16.50">
               <div><h3>Pork Belly Teriyaki</h3><p>Rendered belly, apple and dark soy glaze</p></div>
               <span class="price">$16.50</span>
               <div class="stepper">
@@ -176,7 +212,7 @@
                 <button type="button" data-step="up" aria-label="Add one Pork Belly Teriyaki">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Salmon Teriyaki" data-price="17.90">
+            <div class="pick-row" data-main="1" data-name="Salmon Teriyaki" data-price="17.90">
               <div><h3>Salmon Teriyaki</h3><p>Skin-on fillet, yuzu-soy glaze, pickles</p></div>
               <span class="price">$17.90</span>
               <div class="stepper">
@@ -185,7 +221,7 @@
                 <button type="button" data-step="up" aria-label="Add one Salmon Teriyaki">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Prawn Teriyaki" data-price="18.50">
+            <div class="pick-row" data-main="1" data-name="Prawn Teriyaki" data-price="18.50">
               <div><h3>Prawn Teriyaki</h3><p>Six tiger prawns, garlic butter glaze</p></div>
               <span class="price">$18.50</span>
               <div class="stepper">
@@ -194,7 +230,7 @@
                 <button type="button" data-step="up" aria-label="Add one Prawn Teriyaki">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Ginger Tofu" data-price="12.50">
+            <div class="pick-row" data-main="1" data-name="Ginger Tofu" data-price="12.50">
               <div><h3>Ginger Tofu</h3><p>Grilled firm tofu, ginger-garlic glaze. Vegan</p></div>
               <span class="price">$12.50</span>
               <div class="stepper">
@@ -203,7 +239,7 @@
                 <button type="button" data-step="up" aria-label="Add one Ginger Tofu">+</button>
               </div>
             </div>
-            <div class="pick-row" data-name="Grilled Vegetable Bowl" data-price="11.90">
+            <div class="pick-row" data-main="1" data-name="Grilled Vegetable Bowl" data-price="11.90">
               <div><h3>Grilled Vegetable Bowl</h3><p>Aubergine, shiitake, sweet potato, tenderstem. Vegan</p></div>
               <span class="price">$11.90</span>
               <div class="stepper">
@@ -362,6 +398,7 @@
           <div class="totals">
             <div><span>Items</span><span id="sum-count">0</span></div>
             <div><span>Subtotal</span><span id="sum-subtotal">$0.00</span></div>
+            <div id="sum-portion-row" hidden><span id="sum-portion-label">Portions</span><span id="sum-portion">$0.00</span></div>
             <div><span>Delivery</span><span id="sum-fee">$0.00</span></div>
             <div class="grand"><span>Total</span><span id="sum-total">$0.00</span></div>
           </div>
@@ -493,6 +530,12 @@
     </div>
   </div>
 </footer>
+
+<button class="to-top" type="button" aria-label="Back to top" hidden>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
 
 <script src="assets/js/main.js"></script>
 </body>

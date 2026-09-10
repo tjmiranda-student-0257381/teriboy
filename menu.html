@@ -69,10 +69,55 @@
   <div class="container">
     <p class="breadcrumb"><a href="index.html">Home</a> / <span>Menu</span></p>
     <h1>The menu.</h1>
-    <p class="lead">Every main is grilled over charcoal, glazed in three passes and served over steamed short-grain rice or buckwheat noodles with charred seasonal greens. Swap the base at no charge.</p>
+    <p class="lead">Every main is grilled over charcoal, glazed in three passes and served over steamed short-grain rice or buckwheat noodles with charred seasonal greens. Swap the base at no charge, and pick the portion that suits you &mdash; diet, regular or extra.</p>
     <div class="btn-row">
       <a class="btn" href="order.html">Build my order</a>
       <a class="btn btn--ghost" href="services.html">Catering and trays</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ PORTIONS -->
+<section class="section section--tight section--alt">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow">Build your plate</span>
+      <h2>Three portion sizes</h2>
+      <p class="lead">Every main is built to the size you pick. Choose once at checkout and it applies to each plate in your order.</p>
+      <div class="rule"></div>
+    </div>
+
+    <div class="grid g-3">
+      <article class="card reveal">
+        <div class="dish__row"><h3>Diet</h3><span class="dish__price">+$1.50</span></div>
+        <p class="muted">Less rice, more greens, the same protein &mdash; for anyone watching the carbs but not the flavour.</p>
+        <ul class="checklist mt-1">
+          <li><span>1 cup of rice</span></li>
+          <li><span>Extra vegetables</span></li>
+          <li><span>Full protein portion</span></li>
+        </ul>
+      </article>
+
+      <article class="card reveal" data-delay="90">
+        <div class="dish__row"><h3>Regular</h3><span class="dish__price">Included</span></div>
+        <p class="muted">The standard plate, and the one most people order. No upcharge.</p>
+        <ul class="checklist mt-1">
+          <li><span>2 cups of rice</span></li>
+          <li><span>Vegetables</span></li>
+          <li><span>Full protein portion</span></li>
+        </ul>
+      </article>
+
+      <article class="card reveal" data-delay="180">
+        <div class="dish__row"><h3>Extra</h3><span class="dish__price">+$3.99</span></div>
+        <p class="muted">For a long duty day. Everything scaled up, with a soda in the box.</p>
+        <ul class="checklist mt-1">
+          <li><span>2.5 cups of rice</span></li>
+          <li><span>More vegetables</span></li>
+          <li><span>More protein</span></li>
+          <li><span>Soda included &mdash; make it a Monster for $5.99</span></li>
+        </ul>
+      </article>
     </div>
   </div>
 </section>
@@ -389,6 +434,12 @@
     </div>
   </div>
 </footer>
+
+<button class="to-top" type="button" aria-label="Back to top" hidden>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
 
 <script src="assets/js/main.js"></script>
 </body>

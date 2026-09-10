@@ -1,0 +1,161 @@
+/* ==========================================================================
+   TERIBOY BOOKS - internal workbook
+   Layers on top of style.css: same tokens, spreadsheet chrome.
+   ========================================================================== */
+
+.books{background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+
+/* Top bar ------------------------------------------------------------------ */
+.books-bar{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  padding:.85rem clamp(14px,2.5vw,26px);
+  background:rgba(7,7,7,.97);border-bottom:1px solid var(--line-gold);
+}
+.books-bar__brand{display:flex;align-items:center;gap:.7rem;margin-right:auto}
+.books-bar__brand strong{font-family:var(--ff-display);font-size:1.18rem;font-weight:400;letter-spacing:.04em;display:block;line-height:1.2}
+.books-bar__brand small{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
+.books-bar__tools{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.save-state{
+  font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);
+  border:1px solid var(--line);border-radius:var(--radius-pill);padding:.32rem .8rem;white-space:nowrap;
+}
+.save-state.is-saved{color:#7fc98a;border-color:rgba(127,201,138,.4)}
+
+/* Tabs --------------------------------------------------------------------- */
+.tabs{
+  display:flex;gap:.3rem;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:.7rem clamp(14px,2.5vw,26px) 0;
+  background:linear-gradient(180deg,#0b0b0e,var(--bg));
+  border-bottom:1px solid var(--line);position:sticky;top:63px;z-index:39;
+  scroll-behavior:smooth;
+}
+.tab{
+  display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;cursor:pointer;
+  border:1px solid var(--line);border-bottom:0;border-radius:12px 12px 0 0;
+  background:transparent;color:var(--muted);
+  padding:.7rem 1.05rem;font-size:.76rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  transition:color .25s var(--ease),background .25s var(--ease),border-color .25s var(--ease);
+}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.tab.is-active{
+  color:var(--gold);background:var(--panel);border-color:var(--line-gold);
+  box-shadow:inset 0 2px 0 var(--red);
+}
+.tab__no{
+  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+  background:rgba(255,255,255,.07);color:var(--muted);font-size:.64rem;
+}
+.tab.is-active .tab__no{background:var(--red);color:#fff}
+
+/* Sheet -------------------------------------------------------------------- */
+.sheet{flex:1;padding:clamp(18px,3vw,32px) clamp(14px,2.5vw,26px) 90px;max-width:1600px;width:100%;margin-inline:auto}
+.sheet-head{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;justify-content:space-between;margin-bottom:1.4rem}
+.sheet-head h1{font-size:clamp(1.5rem,3vw,2.1rem);margin:0 0 .25rem}
+.sheet-head .muted{font-size:.88rem;margin:0;max-width:64ch}
+.sheet-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.inline-label{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.search{
+  background:#0b0b0d;border:1px solid var(--line-2);border-radius:var(--radius);
+  padding:.55rem .8rem;font-size:.88rem;min-width:min(240px,60vw);
+}
+.search:focus{outline:none;border-color:var(--gold)}
+select.search{min-width:11rem;cursor:pointer}
+input[type="date"].search{min-width:11rem}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(72%) sepia(45%) saturate(600%) hue-rotate(2deg);cursor:pointer}
+.sub-head{font-size:1.15rem;margin:2.4rem 0 1rem;padding-top:1.4rem;border-top:1px solid var(--line)}
+
+/* Table -------------------------------------------------------------------- */
+.grid-wrap{
+  border:1px solid var(--line);border-radius:var(--radius);overflow:auto;
+  background:var(--panel);max-height:70vh;
+}
+.sheet-table{width:100%;min-width:900px;border-collapse:separate;border-spacing:0}
+.sheet-table th,.sheet-table td{
+  border-bottom:1px solid var(--line);border-right:1px solid var(--line);
+  padding:0;text-align:left;vertical-align:middle;
+}
+.sheet-table th{
+  position:sticky;top:0;z-index:2;background:#17171c;
+  padding:.6rem .7rem;font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;white-space:nowrap;
+}
+.sheet-table th.num,.sheet-table td.num{text-align:right}
+.sheet-table tbody tr:hover td{background:rgba(212,175,55,.04)}
+.sheet-table tbody tr:last-child td{border-bottom:0}
+.sheet-table td:last-child,.sheet-table th:last-child{border-right:0}
+
+.cell{
+  width:100%;border:0;background:transparent;color:var(--text);
+  padding:.55rem .7rem;font-size:.86rem;font-variant-numeric:tabular-nums;
+}
+.cell:focus{outline:none;background:rgba(212,175,55,.1);box-shadow:inset 0 0 0 1px var(--gold)}
+.cell::placeholder{color:var(--muted-2)}
+.cell.num{text-align:right}
+.cell[readonly]{color:var(--gold);cursor:default}
+select.cell{cursor:pointer;appearance:none;padding-right:1.3rem}
+td.calc{color:var(--gold);padding:.55rem .7rem;font-size:.86rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.calc.muted-cell{color:var(--muted)}
+.row-del{
+  width:100%;height:100%;min-height:2.2rem;border:0;background:transparent;color:var(--muted-2);
+  cursor:pointer;font-size:1.05rem;line-height:1;transition:color .2s var(--ease)
+}
+.row-del:hover{color:var(--red-2)}
+.empty{
+  border:1px dashed var(--line-2);border-radius:var(--radius);
+  padding:1.6rem;text-align:center;color:var(--muted);font-size:.9rem;margin-top:1rem;
+}
+
+/* Report tables ------------------------------------------------------------ */
+.sheet-table.report td{padding:.6rem .7rem;font-size:.87rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+.sheet-table.report td:first-child{color:var(--text);font-weight:500;white-space:nowrap}
+.sheet-table.report td.pos{color:#7fc98a}
+.sheet-table.report td.neg{color:var(--red-2)}
+.sheet-table.report tr.totals-row td{
+  background:rgba(212,175,55,.07);color:var(--gold-2);font-weight:600;
+  border-top:1px solid var(--line-gold);
+}
+
+/* Stat cards --------------------------------------------------------------- */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:1.3rem}
+.stat{
+  background:linear-gradient(180deg,var(--panel),#0e0e11);border:1px solid var(--line);
+  border-radius:var(--radius);padding:.95rem 1.05rem;
+}
+.stat strong{display:block;font-family:var(--ff-display);font-size:1.55rem;color:var(--gold);line-height:1.2}
+.stat span{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.stat-row--big .stat strong{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+.stat.is-good strong{color:#7fc98a}
+.stat.is-bad strong{color:var(--red-2)}
+
+/* Expense breakdown -------------------------------------------------------- */
+.summary-split{display:grid;grid-template-columns:1.6fr 1fr;gap:clamp(18px,3vw,32px);align-items:start}
+.breakdown{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:1.1rem 1.2rem;display:grid;gap:.9rem;
+}
+.bd-row span{display:flex;justify-content:space-between;gap:1rem;font-size:.85rem;color:var(--muted);margin-bottom:.35rem}
+.bd-row span b{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
+.bd-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.bd-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--gold))}
+.breakdown .empty{margin:0;border:0;padding:.4rem 0;text-align:left}
+
+/* Footer ------------------------------------------------------------------- */
+.books-foot{
+  border-top:1px solid var(--line);padding:1.1rem clamp(14px,2.5vw,26px);
+  color:var(--muted-2);font-size:.8rem;text-align:center;
+}
+.books-foot strong{color:var(--muted)}
+
+@media (max-width:1000px){
+  .summary-split{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .books-bar{gap:.6rem}
+  .books-bar__brand small{display:none}
+  .tabs{top:57px}
+  .sheet-head{align-items:flex-start}
+  .sheet-actions{width:100%}
+  .search{flex:1;min-width:0}
+  .grid-wrap{max-height:none}
+}

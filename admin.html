@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.className += " js";</script>
+<title>Teriboy Books &mdash; Customers, Reports and Profit</title>
+<meta name="description" content="Internal Teriboy workbook: customer records by phone number, daily to annual reports, expenses, income and net profit.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#070707">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="books" data-page="admin">
+<a class="skip" href="#sheet">Skip to the sheet</a>
+
+<header class="books-bar">
+  <div class="books-bar__brand">
+    <svg class="brand__mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <circle cx="24" cy="24" r="22" stroke="#d4af37" stroke-width="1.5"/>
+      <path d="M10.5 25.5h27c0 7.2-6 13-13.5 13s-13.5-5.8-13.5-13Z" fill="#e01e26"/>
+      <path d="M9 25.5h30" stroke="#d4af37" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M19 21c0-2.2 2.6-2.4 2.6-4.6S19 12 19 12" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M27.5 21c0-2.2 2.6-2.4 2.6-4.6" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span>
+      <strong>Teriboy Books</strong>
+      <small>Internal workbook &middot; saved in this browser</small>
+    </span>
+  </div>
+
+  <div class="books-bar__tools">
+    <span class="save-state" id="save-state" aria-live="polite">Ready</span>
+    <button class="btn btn--sm btn--ghost" type="button" id="backup">Backup</button>
+    <button class="btn btn--sm btn--ghost" type="button" id="restore">Restore</button>
+    <input type="file" id="restore-file" accept="application/json,.json" hidden>
+    <a class="btn btn--sm btn--ghost" href="index.html">Website</a>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Workbook tabs">
+  <button class="tab is-active" role="tab" type="button" data-tab="customers" aria-selected="true"><span class="tab__no">1</span>Customers</button>
+  <button class="tab" role="tab" type="button" data-tab="daily" aria-selected="false"><span class="tab__no">2</span>Daily</button>
+  <button class="tab" role="tab" type="button" data-tab="weekly" aria-selected="false"><span class="tab__no">3</span>Weekly</button>
+  <button class="tab" role="tab" type="button" data-tab="monthly" aria-selected="false"><span class="tab__no">4</span>Monthly</button>
+  <button class="tab" role="tab" type="button" data-tab="quarterly" aria-selected="false"><span class="tab__no">5</span>Quarterly</button>
+  <button class="tab" role="tab" type="button" data-tab="semi" aria-selected="false"><span class="tab__no">6</span>Semi-annual</button>
+  <button class="tab" role="tab" type="button" data-tab="annual" aria-selected="false"><span class="tab__no">7</span>Annual</button>
+  <button class="tab" role="tab" type="button" data-tab="summary" aria-selected="false"><span class="tab__no">8</span>Summary</button>
+</nav>
+
+<main id="sheet" class="sheet">
+
+  <!-- ============================================================ 1 CUSTOMERS -->
+  <section class="panel-sheet" data-panel="customers">
+    <div class="sheet-head">
+      <div>
+        <h1>Customers</h1>
+        <p class="muted">Keyed by phone number. Placing an order for a new number adds the customer here automatically.</p>
+      </div>
+      <div class="sheet-actions">
+        <input type="search" id="customer-search" class="search" placeholder="Search phone, name, command...">
+        <button class="btn btn--sm" type="button" id="add-customer">Add customer</button>
+        <button class="btn btn--sm btn--ghost" type="button" data-csv="customers">Export CSV</button>
+      </div>
+    </div>
+    <div class="grid-wrap">
+      <table class="sheet-table" id="customers-table">
+        <thead>
+          <tr>
+            <th style="width:9.5rem">Phone</th>
+            <th style="width:11rem">Name</th>
+            <th style="width:12rem">Email</th>
+            <th style="width:8rem">Area</th>
+            <th style="width:11rem">Building / command</th>
+            <th>Notes</th>
+            <th class="num" style="width:5rem">Orders</th>
+            <th class="num" style="width:7rem">Spent</th>
+            <th class="num" style="width:7.5rem">Last order</th>
+            <th style="width:3rem"><span class="sr-only">Delete</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="empty" id="customers-empty" hidden>No customers yet. Add one, or record an order on the Daily tab.</p>
+  </section>
+
+  <!-- ============================================================ 2 DAILY -->
+  <section class="panel-sheet" data-panel="daily" hidden>
+    <div class="sheet-head">
+      <div>
+        <h1>Daily report</h1>
+        <p class="muted">Every order is recorded here. The other report tabs roll these rows up automatically.</p>
+      </div>
+      <div class="sheet-actions">
+        <label class="inline-label" for="daily-date">Day</label>
+        <input type="date" id="daily-date" class="search">
+        <button class="btn btn--sm" type="button" id="add-order">Add order</button>
+        <button class="btn btn--sm btn--ghost" type="button" data-csv="orders">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="stat-row" id="daily-stats"></div>
+
+    <div class="grid-wrap">
+      <table class="sheet-table" id="orders-table">
+        <thead>
+          <tr>
+            <th style="width:8.5rem">Date</th>
+            <th style="width:9rem">Phone</th>
+            <th style="width:10rem">Name</th>
+            <th style="width:8rem">Portion</th>
+            <th style="width:8.5rem">Soda</th>
+            <th class="num" style="width:5rem">Mains</th>
+            <th>Items</th>
+            <th class="num" style="width:6.5rem">Food $</th>
+            <th class="num" style="width:6.5rem">Portions $</th>
+            <th class="num" style="width:6.5rem">Delivery $</th>
+            <th class="num" style="width:7rem">Total</th>
+            <th style="width:8rem">Payment</th>
+            <th style="width:8rem">Code</th>
+            <th style="width:8rem">Status</th>
+            <th style="width:3rem"><span class="sr-only">Delete</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="empty" id="orders-empty" hidden>No orders on this day. Press <strong>Add order</strong> to start.</p>
+
+    <h2 class="sub-head">Every day so far</h2>
+    <div class="grid-wrap">
+      <table class="sheet-table report" id="daily-report"><thead></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- ============================================================ 3-7 ROLLUPS -->
+  <section class="panel-sheet" data-panel="weekly" hidden>
+    <div class="sheet-head">
+      <div><h1>Weekly report</h1><p class="muted">Weeks start on Monday. Computed from the orders and expenses you record.</p></div>
+      <div class="sheet-actions"><button class="btn btn--sm btn--ghost" type="button" data-csv="weekly">Export CSV</button></div>
+    </div>
+    <div class="stat-row" data-stats="weekly"></div>
+    <div class="grid-wrap"><table class="sheet-table report" data-report="weekly"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel-sheet" data-panel="monthly" hidden>
+    <div class="sheet-head">
+      <div><h1>Monthly report</h1><p class="muted">Calendar months, newest first.</p></div>
+      <div class="sheet-actions"><button class="btn btn--sm btn--ghost" type="button" data-csv="monthly">Export CSV</button></div>
+    </div>
+    <div class="stat-row" data-stats="monthly"></div>
+    <div class="grid-wrap"><table class="sheet-table report" data-report="monthly"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel-sheet" data-panel="quarterly" hidden>
+    <div class="sheet-head">
+      <div><h1>Quarterly report</h1><p class="muted">Q1 January to March, Q2 April to June, Q3 July to September, Q4 October to December.</p></div>
+      <div class="sheet-actions"><button class="btn btn--sm btn--ghost" type="button" data-csv="quarterly">Export CSV</button></div>
+    </div>
+    <div class="stat-row" data-stats="quarterly"></div>
+    <div class="grid-wrap"><table class="sheet-table report" data-report="quarterly"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel-sheet" data-panel="semi" hidden>
+    <div class="sheet-head">
+      <div><h1>Semi-annual report</h1><p class="muted">H1 is January to June, H2 is July to December.</p></div>
+      <div class="sheet-actions"><button class="btn btn--sm btn--ghost" type="button" data-csv="semi">Export CSV</button></div>
+    </div>
+    <div class="stat-row" data-stats="semi"></div>
+    <div class="grid-wrap"><table class="sheet-table report" data-report="semi"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel-sheet" data-panel="annual" hidden>
+    <div class="sheet-head">
+      <div><h1>Annual report</h1><p class="muted">One row per calendar year.</p></div>
+      <div class="sheet-actions"><button class="btn btn--sm btn--ghost" type="button" data-csv="annual">Export CSV</button></div>
+    </div>
+    <div class="stat-row" data-stats="annual"></div>
+    <div class="grid-wrap"><table class="sheet-table report" data-report="annual"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- ============================================================ 8 SUMMARY -->
+  <section class="panel-sheet" data-panel="summary" hidden>
+    <div class="sheet-head">
+      <div>
+        <h1>Expenses, income and net profit</h1>
+        <p class="muted">Income comes from the orders you record. Expenses are entered below.</p>
+      </div>
+      <div class="sheet-actions">
+        <label class="inline-label" for="summary-range">Period</label>
+        <select id="summary-range" class="search">
+          <option value="all">All time</option>
+          <option value="year">This year</option>
+          <option value="quarter">This quarter</option>
+          <option value="month">This month</option>
+        </select>
+        <button class="btn btn--sm" type="button" id="add-expense">Add expense</button>
+        <button class="btn btn--sm btn--ghost" type="button" data-csv="expenses">Export CSV</button>
+      </div>
+    </div>
+
+    <div class="stat-row stat-row--big" id="summary-stats"></div>
+
+    <div class="summary-split">
+      <div>
+        <h2 class="sub-head">Expenses</h2>
+        <div class="grid-wrap">
+          <table class="sheet-table" id="expenses-table">
+            <thead>
+              <tr>
+                <th style="width:8.5rem">Date</th>
+                <th style="width:10rem">Category</th>
+                <th style="width:10rem">Supplier</th>
+                <th>Note</th>
+                <th class="num" style="width:7rem">Amount</th>
+                <th style="width:3rem"><span class="sr-only">Delete</span></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty" id="expenses-empty" hidden>No expenses recorded for this period.</p>
+      </div>
+
+      <div>
+        <h2 class="sub-head">Where the money went</h2>
+        <div class="breakdown" id="expense-breakdown"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="books-foot">
+  <p>Teriboy Books &middot; data is stored in this browser only. Use <strong>Backup</strong> regularly and keep the file somewhere safe.</p>
+</footer>
+
+<button class="to-top" type="button" aria-label="Back to top" hidden>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
