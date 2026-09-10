@@ -69,7 +69,7 @@
   <div class="container">
     <p class="breadcrumb"><a href="index.html">Home</a> / <span>Order</span></p>
     <h1>Order tonight.<br>Eat tomorrow.</h1>
-    <p class="lead">Place your order before <span class="gold">9:00 PM</span> and it goes on the grill first thing in the morning. Choose the lunch or dinner window that suits you &mdash; same next day, your call. Nothing is charged on this page: you pay by Zelle once we hand you a payment code.</p>
+    <p class="lead">Place your order before <span class="gold">9:00 PM</span> and it goes on the grill first thing in the morning. Choose the lunch or dinner window that suits you &mdash; same next day, your call. Nothing is charged on this page: we hand you a payment code, then you send it from your payment app.</p>
     <p class="badge mt-1"><span class="dot"></span> Cut-off in <span data-countdown>--h --m --s</span></p>
   </div>
 </section>
@@ -361,17 +361,26 @@
           </div>
 
           <div class="field">
-            <label>Payment <span class="req">*</span></label>
-            <div class="radio-grid">
-              <label class="radio-card">
+            <label>How are you paying? <span class="req">*</span></label>
+            <div class="pays">
+              <label class="radio-card pay" data-method="Zelle">
                 <input type="radio" name="payment" value="Zelle" checked>
-                <span>Zelle <small>Code and QR on the next screen</small></span>
+                <span><strong>Zelle</strong><small>QR code on the next screen</small></span>
               </label>
-              <label class="radio-card">
-                <input type="radio" name="payment" value="Cash on delivery">
-                <span>Cash on delivery <small>Pay the driver</small></span>
+              <label class="radio-card pay" data-method="Venmo">
+                <input type="radio" name="payment" value="Venmo">
+                <span><strong>Venmo</strong><small>Pay our handle, code in the note</small></span>
+              </label>
+              <label class="radio-card pay" data-method="Cash App">
+                <input type="radio" name="payment" value="Cash App">
+                <span><strong>Cash App</strong><small>Pay our $Cashtag, code in the note</small></span>
+              </label>
+              <label class="radio-card pay" data-method="Apple Pay">
+                <input type="radio" name="payment" value="Apple Pay">
+                <span><strong>Apple Pay</strong><small>Send to our number, code in the message</small></span>
               </label>
             </div>
+            <span class="hint">Teriboy is cashless &mdash; our drivers carry no money and cannot take payment at the door.</span>
           </div>
 
           <div class="field">
@@ -413,10 +422,10 @@
           <ol class="numbered">
             <li>Place your order. <strong>Nothing is charged on this page.</strong></li>
             <li>We hand you a payment code that looks like <strong class="gold">1-26253</strong>.</li>
-            <li>Scan the Zelle QR on the confirmation screen and send the exact total.</li>
-            <li>Type the code in the Zelle <strong>memo</strong> field so we can match it to your food.</li>
+            <li>Send the exact total from Zelle, Venmo, Cash App or Apple Pay.</li>
+            <li>Type the code in the <strong>memo or note</strong> field so we can match it to your food.</li>
           </ol>
-          <p class="form-note" style="text-align:left;margin-top:1rem">Prefer to pay the driver in cash? Choose that option in step 3 and skip all of this.</p>
+          <p class="form-note" style="text-align:left;margin-top:1rem">We are cashless. Pick your app in step 3 and the confirmation screen shows exactly where to send it.</p>
         </div>
 
         <div class="panel">
@@ -511,6 +520,7 @@
         <h4>Kitchen and Delivery</h4>
         <ul class="footer-list">
           <li><strong>Order cut-off:</strong> 9:00 PM daily</li>
+          <li><strong>Cashless only:</strong> Zelle, Venmo, Cash App, Apple Pay</li>
           <li><strong>Delivery:</strong> next-day lunch 11:00 AM &ndash; 1:30 PM or dinner 5:00 PM &ndash; 8:00 PM</li>
           <li><a href="tel:+16197308655">(619) 730-8655</a></li>
           <li><a href="mailto:hello@teriboy.com">hello@teriboy.com</a></li>

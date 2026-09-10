@@ -21,7 +21,7 @@
   var PORTIONS = ['Diet', 'Regular', 'Extra'];
   var SODAS = ['', 'Regular soda', 'Monster'];
   var AREAS = ['Main Side', 'Ops Side', 'Off base', 'Pickup'];
-  var PAYMENTS = ['Zelle', 'Cash', 'Other'];
+  var PAYMENTS = ['Zelle', 'Venmo', 'Cash App', 'Apple Pay', 'Other'];
   var STATUSES = ['New', 'Paid', 'Delivered', 'Cancelled'];
   var CATEGORIES = ['Ingredients', 'Charcoal and fuel', 'Packaging', 'Vehicle and delivery',
                     'Utilities', 'Rent', 'Wages', 'Fees and licences', 'Marketing', 'Other'];

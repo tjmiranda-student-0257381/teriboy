@@ -11,6 +11,45 @@
   var FREE_DELIVERY_OVER = 60;
   var CURRENCY = '$';
 
+  /* --------------------------------------------------------------------------
+     PAYMENT METHODS - Teriboy is cashless. This is the only place to edit.
+
+     To switch a method on: set enabled to true and fill in either `handle`
+     (the name, number or $Cashtag people send to) or `qr` (a path to a QR
+     image in assets/img/). A method with enabled:false shows in the form as
+     "not available yet" and cannot be selected.
+     -------------------------------------------------------------------------- */
+  var PAYMENT_METHODS = {
+    'Zelle': {
+      enabled: true,
+      qr: 'assets/img/zelle-qr.jpg',
+      handle: '',                          // e.g. '(619) 730-8655'
+      field: 'memo',
+      how: 'Open your banking app and choose Zelle.'
+    },
+    'Venmo': {
+      enabled: false,
+      qr: '',                              // e.g. 'assets/img/venmo-qr.jpg'
+      handle: '',                          // e.g. '@Teriboy'
+      field: 'note',
+      how: 'Open Venmo and search for our handle.'
+    },
+    'Cash App': {
+      enabled: false,
+      qr: '',
+      handle: '',                          // e.g. '$Teriboy'
+      field: 'note',
+      how: 'Open Cash App and enter our $Cashtag.'
+    },
+    'Apple Pay': {
+      enabled: false,
+      qr: '',
+      handle: '',                          // e.g. '(619) 730-8655'
+      field: 'message',
+      how: 'Open Messages, tap the Apple Pay button and send to our number.'
+    }
+  };
+
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var money = function (n) { return CURRENCY + n.toFixed(2); };
@@ -417,40 +456,83 @@
     };
   }
 
-  function zelleBlock(info, snap) {
-    return '' +
+  function paymentBlock(info, snap) {
+    var name = snap.payment || 'Zelle';
+    var cfg = PAYMENT_METHODS[name] || {};
+    var field = cfg.field || 'note';
+
+    var code =
       '<div class="confirm__code">' +
         '<span class="confirm__code-label">Your payment code</span>' +
         '<strong class="confirm__code-value">' + info.code + '</strong>' +
         '<button class="btn btn--sm btn--ghost" type="button" data-copy="' + info.code + '">Copy code</button>' +
-      '</div>' +
+      '</div>';
+
+    // Nothing to send to yet - tell them plainly rather than guessing.
+    if (!cfg.qr && !cfg.handle) {
+      return code +
+        '<div class="notice notice--red mt-2">' +
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>' +
+          '<div><strong>We will send you the ' + esc(name) + ' details</strong>' +
+          'Our ' + esc(name) + ' account is being set up. We will reply to your confirmation email with ' +
+          'exactly where to send <strong>' + snap.total + '</strong>. Quote <strong>' + info.code + '</strong> when you do.</div>' +
+        '</div>';
+    }
+
+    var target = cfg.handle
+      ? '<li>Send to <strong class="gold">' + esc(cfg.handle) + '</strong>.</li>'
+      : '<li>Scan the QR code to load our details.</li>';
+
+    return code +
       '<div class="zelle">' +
-        '<figure class="zelle__qr">' +
-          '<img src="assets/img/zelle-qr.jpg" alt="Zelle QR code for paying Teriboy" width="300" height="300">' +
-          '<figcaption>Scan with your banking app</figcaption>' +
-        '</figure>' +
+        (cfg.qr
+          ? '<figure class="zelle__qr">' +
+              '<img src="' + esc(cfg.qr) + '" alt="' + esc(name) + ' QR code for paying Teriboy" width="300" height="300">' +
+              '<figcaption>Scan with your ' + (name === 'Zelle' ? 'banking app' : esc(name) + ' app') + '</figcaption>' +
+            '</figure>'
+          : '') +
         '<div class="zelle__body">' +
-          '<h3>Send <span class="gold">' + snap.total + '</span> with Zelle</h3>' +
+          '<h3>Send <span class="gold">' + snap.total + '</span> with ' + esc(name) + '</h3>' +
           '<ol class="numbered">' +
-            '<li>Open your banking app and choose <strong>Zelle</strong>.</li>' +
-            '<li>Scan the QR code to load our details.</li>' +
-            '<li>Enter <strong class="gold">' + info.code + '</strong> in the <strong>memo</strong> field.</li>' +
+            '<li>' + esc(cfg.how || ('Open ' + name + '.')) + '</li>' +
+            target +
+            '<li>Enter <strong class="gold">' + info.code + '</strong> in the <strong>' + field + '</strong> field.</li>' +
             '<li>Send the exact total, <strong>' + snap.total + '</strong>, before tonight&rsquo;s 9:00 PM cut-off.</li>' +
           '</ol>' +
-          '<p class="muted">Paying from this phone? Screenshot the QR code, then pick it from your photos inside the Zelle screen. ' +
-          'The memo code is the only thing that ties your transfer to your food, so please do not leave it blank.</p>' +
+          '<p class="muted">' +
+            (cfg.qr ? 'Paying from this phone? Screenshot the QR code, then pick it from your photos inside the app. ' : '') +
+            'The ' + field + ' code is the only thing that ties your transfer to your food, so please do not leave it blank. ' +
+            'We are cashless, so nothing is collected at the door.' +
+          '</p>' +
         '</div>' +
       '</div>';
   }
 
-  function cashBlock(snap) {
-    return '' +
-      '<div class="notice">' +
-        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg>' +
-        '<div><strong>Paying cash on delivery</strong>' +
-        'Have <strong>' + snap.total + '</strong> ready for the driver. Changed your mind and want to pay by Zelle instead? ' +
-        'Call us on (619) 730-8655 and we will give you a payment code.</div>' +
-      '</div>';
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // Only offer methods that are actually set up.
+  function initPaymentMethods() {
+    $$('.pay').forEach(function (label) {
+      var name = label.getAttribute('data-method');
+      var cfg = PAYMENT_METHODS[name];
+      var radio = $('input', label);
+      if (!cfg || cfg.enabled) { return; }
+      radio.disabled = true;
+      if (radio.checked) { radio.checked = false; }
+      label.classList.add('is-soon');
+      var small = $('small', label);
+      if (small) { small.textContent = 'Setting up - not available yet'; }
+    });
+
+    // Make sure something valid is selected.
+    if (!$('input[name="payment"]:checked')) {
+      var first = $('input[name="payment"]:not(:disabled)');
+      if (first) { first.checked = true; }
+    }
   }
 
   function showOrderConfirmation(info, snap) {
@@ -458,7 +540,7 @@
     var form = $('#order-form');
     if (!box || !form) { return false; }
 
-    var paidByZelle = snap.payment.indexOf('Zelle') === 0;
+
     box.innerHTML = '' +
       '<div class="confirm__head">' +
         '<span class="confirm__tick" aria-hidden="true">' +
@@ -470,7 +552,7 @@
         (snap.portion ? ' ' + snap.portion + '.' : '') +
         ' A confirmation is on its way to your inbox.</p>' +
       '</div>' +
-      (paidByZelle ? zelleBlock(info, snap) : cashBlock(snap)) +
+      paymentBlock(info, snap) +
       '<div class="btn-row btn-row--center">' +
         '<a class="btn btn--ghost" href="menu.html">Back to the menu</a>' +
         '<a class="btn btn--ghost" href="faqs.html">Questions about payment</a>' +
@@ -644,6 +726,7 @@
     initFilters();
     initCutoffNotices();
     initDateField();
+    initPaymentMethods();
     initOrderBuilder();
     initForms();
     initToTop();

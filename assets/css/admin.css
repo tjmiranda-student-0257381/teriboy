@@ -159,3 +159,62 @@ td.calc.muted-cell{color:var(--muted)}
   .search{flex:1;min-width:0}
   .grid-wrap{max-height:none}
 }
+
+/* Sign-in gate ------------------------------------------------------------- */
+html.locked body{overflow:hidden}
+html.locked .tabs,
+html.locked .sheet,
+html.locked .books-foot,
+html.locked .books-bar__tools,
+html.locked .to-top{display:none !important}
+
+.gate{
+  position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:clamp(16px,4vw,40px);
+  background:radial-gradient(70% 60% at 50% 0%,rgba(224,30,38,.14),transparent 65%),rgba(4,4,5,.97);
+  overflow-y:auto;
+}
+.gate__card{
+  width:100%;max-width:420px;text-align:center;
+  background:linear-gradient(180deg,var(--panel),#0d0d10);
+  border:1px solid var(--line-gold);border-radius:var(--radius-lg);
+  padding:clamp(26px,4vw,38px);box-shadow:var(--shadow);
+}
+.gate__card--wide{max-width:600px}
+.gate__lock{
+  width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 1.1rem;
+  background:rgba(212,175,55,.1);border:1px solid var(--line-gold);color:var(--gold);
+}
+.gate__card h1{font-size:1.6rem;margin-bottom:.35rem}
+.gate__sub{color:var(--muted);font-size:.92rem;margin-bottom:1.6rem}
+.gate__step{display:grid;gap:.7rem;justify-items:center}
+.gate__step label{
+  font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;
+}
+.gate__code{
+  width:100%;text-align:center;letter-spacing:.5em;font-size:1.5rem;font-family:var(--ff-display);
+  background:#0b0b0d;border:1px solid var(--line-2);border-radius:var(--radius);
+  padding:.7rem .5rem .7rem 1rem;color:var(--gold-2);
+}
+.gate__code:focus{outline:none;border-color:var(--gold)}
+.gate__hint{font-size:.76rem;color:var(--muted-2);margin:.6rem 0 0}
+.gate__msg{font-size:.85rem;margin:1rem 0 0;min-height:1.2em}
+.gate__msg.is-err{color:var(--red-2)}
+.gate__msg.is-ok{color:#7fc98a}
+.gate__note{
+  font-size:.72rem;color:var(--muted-2);margin:1.4rem 0 0;padding-top:1.1rem;
+  border-top:1px solid var(--line);line-height:1.6;
+}
+.gate__secret{
+  font-family:var(--ff-body);font-size:1.15rem;letter-spacing:.18em;word-break:break-all;
+  background:rgba(212,175,55,.08);border:1px solid var(--line-gold);border-radius:var(--radius);
+  padding:.9rem 1rem;color:var(--gold-2);margin:0;
+}
+.gate-banner{
+  display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
+  border:1px solid rgba(224,30,38,.4);background:rgba(224,30,38,.08);
+  border-radius:var(--radius);padding:.8rem 1rem;margin-bottom:1.4rem;
+  font-size:.88rem;color:var(--muted);
+}
+.gate-banner strong{color:var(--red-2)}
+.gate-banner svg{color:var(--red-2);flex-shrink:0}
+.gate-banner span{flex:1;min-width:200px}

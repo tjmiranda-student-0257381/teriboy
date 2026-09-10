@@ -22,11 +22,27 @@ This is enforced in [`assets/js/main.js`](assets/js/main.js): the delivery date 
 and default value are computed from the cut-off, a live countdown runs in the header badge, and
 every `data-cutoff-date` element on the site prints the real earliest delivery date.
 
-## Payment: Zelle + the Julian code
+## Payment: cashless, with a Julian code
+
+**Teriboy is strictly cashless.** Drivers carry no money and cannot take cash or cards at the
+door. Four methods are accepted:
+
+| Method | Status | Where to switch it on |
+| --- | --- | --- |
+| **Zelle** | Live — QR code ships with the site | already configured |
+| **Venmo** | Not set up yet | `PAYMENT_METHODS` in `assets/js/main.js` |
+| **Cash App** | Not set up yet | `PAYMENT_METHODS` in `assets/js/main.js` |
+| **Apple Pay** | Not set up yet | `PAYMENT_METHODS` in `assets/js/main.js` |
+
+A method with `enabled: false` still appears on the order form but is greyed out and reads
+"Setting up - not available yet", so nobody can pick a method you cannot receive. To turn one on,
+set `enabled: true` and fill in **either** a `handle` (`@Teriboy`, `$Teriboy`, a phone number) or
+a `qr` (a QR image in `assets/img/`). The confirmation screen builds itself from whichever you
+supply. Nothing else needs editing.
 
 No payment is taken on the website. When an order is submitted, the site issues a **payment
-code** and shows it with your Zelle QR code, asking the customer to type the code in the Zelle
-memo field so you can match the transfer to the food.
+code** and shows it with the payment details, asking the customer to type the code in the memo
+or note field so you can match the transfer to the food.
 
 **Code format** — `<sequence>-<YY><DDD>`:
 
@@ -40,8 +56,8 @@ So the first order on 10 September 2026 is stored as `00001-26253` and **display
 customer as `1-26253`**, exactly as specified. Both forms are sent to you: the short one in the
 `payment_code` field, and `1-26253  [00001-26253]` at the bottom of the itemised order.
 
-The QR shown on the confirmation screen is [`assets/img/zelle-qr.jpg`](assets/img/zelle-qr.jpg).
-Replace that one file if your Zelle account ever changes.
+The Zelle QR on the confirmation screen is [`assets/img/zelle-qr.jpg`](assets/img/zelle-qr.jpg).
+Replace that one file if the account ever changes.
 
 ### The one caveat worth knowing
 
@@ -110,6 +126,60 @@ That means:
 
 If the business outgrows this — more than one person entering orders, or you want the website's
 orders to land here automatically — that is the point to move the ledger to a real backend.
+
+## Locking the workbook
+
+`admin.html` ships with a sign-in gate in [`assets/js/admin-auth.js`](assets/js/admin-auth.js):
+Google sign-in restricted to an allowlist, then a 6-digit code from Google Authenticator. Until
+you configure it, the workbook shows a red "not locked yet" banner with a setup button.
+
+### Be clear about what this is
+
+This is a static site. There is no server, so **every check runs in the visitor's browser and can
+be bypassed** by anyone who opens dev tools, disables JavaScript, or reads `admin-auth.js`. The
+books themselves live in `localStorage` and are readable the same way.
+
+It is a lock on a drawer. It stops someone who wanders up to an unlocked laptop or guesses the
+URL. It does not stop someone who is actually trying. Worse, **this repository is public**, so a
+TOTP secret committed here is readable by anyone — they could generate valid codes.
+
+So: use it for convenience now, and use Cloudflare Access before you handle real customer data.
+
+### Turning it on (browser gate)
+
+1. **Google sign-in** — in [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
+   create an *OAuth 2.0 Client ID* of type *Web application*. Add `https://teriboy.com` to
+   **Authorised JavaScript origins**. Paste the client ID into `AUTH.GOOGLE_CLIENT_ID`.
+   `AUTH.ALLOWED_EMAILS` is already set to `miranda.tracyjon.n@gmail.com`.
+2. **Google Authenticator** — open the workbook, press **Set up the lock**, and it generates a
+   base32 secret. Add it in Authenticator via *Enter a setup key* (time based), then paste the
+   same key into `AUTH.TOTP_SECRET`.
+3. Reload. Either step alone activates the gate; configure both for two factors.
+
+Codes are checked with a ±30-second window, so a slightly drifting phone still works. The unlock
+lasts `SESSION_HOURS` (8) and is forgotten when the browser closes.
+
+Two things that will bite you locally: Google sign-in needs the real domain in the origins list,
+and Authenticator codes need `crypto.subtle`, which browsers only expose over **HTTPS or
+localhost** — opening the file directly with `file://` will not verify codes.
+
+### Doing it properly — Cloudflare Access
+
+This gives you exactly what you asked for, Google login plus Authenticator, checked **before the
+page is ever served**, and it is free for small teams:
+
+1. Move `teriboy.com` to Cloudflare DNS (free plan) and keep the GitHub Pages records
+   **proxied** (orange cloud).
+2. In the Cloudflare **Zero Trust** dashboard: *Access → Applications → Add an application →
+   Self-hosted*. Domain `teriboy.com`, path `admin.html`.
+3. Add a policy: *Action: Allow*, *Include: Emails → miranda.tracyjon.n@gmail.com*.
+4. Under *Settings → Authentication*, enable **Google** as a login method. Because it is your
+   Google account doing the sign-in, the 2-step verification on that account — Authenticator
+   included — applies automatically.
+5. Optionally set the session length to match your shift.
+
+Once that is in place the browser gate is redundant; leave `AUTH.GOOGLE_CLIENT_ID` and
+`AUTH.TOTP_SECRET` blank and Cloudflare does the work.
 
 ## Pages
 
@@ -189,10 +259,11 @@ your driver arrangements differ — escorts, gate meets, who can get where — t
    Until then, clicking shows a "publishing soon" state instead of a broken player.
 6. **Legal pages** — written for this business model, but not legal advice. Have them reviewed
    and update the "Last updated" dates.
-7. **A Zelle name or number in text.** The confirmation screen shows the QR only. Some people
-   pay from the same phone they are reading on and cannot scan their own screen — the page tells
-   them to screenshot it, but a written Zelle handle next to the QR is friendlier. Add it in
-   `zelleBlock()` in `main.js` if you want one.
+7. **Payment handles.** Zelle shows a QR only. Someone paying from the phone they are reading on
+   cannot scan their own screen — the page tells them to screenshot it, but filling in `handle`
+   for Zelle in `PAYMENT_METHODS` gives them something to type instead. Venmo, Cash App and
+   Apple Pay stay greyed out until you add theirs.
+8. **The admin lock** — see *Locking the workbook* above. It is off until you configure it.
 
 Contact details are live and correct: **(619) 730-8655**, **676 Siena Way, Lemoore, CA 93245**.
 
