@@ -51,8 +51,8 @@
     // 2. PASSPHRASE  (no setup at all - press "Set up the lock" in the
     //    workbook, type a phrase, and paste the two lines it gives you here).
     //    Use a phrase you do not use anywhere else. NOT your email password.
-    PASSPHRASE_SALT: '',
-    PASSPHRASE_SHA256: '',
+    PASSPHRASE_SALT: 'a8d326f966e74823',
+    PASSPHRASE_SHA256: 'fdbf3a5d9dec77a0b7b310529361beeca2dc3629d25d55a11111dbd22092fb1e',
 
     // 3. AUTHENTICATOR  (optional). This must be the long base32 SETUP KEY the
     //    app shows when you add an account - NOT one of the 6-digit codes.
