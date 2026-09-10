@@ -356,7 +356,7 @@
       script.onerror = function () { say('Could not reach Google sign-in. Check your connection.', true); };
       script.onload = function () {
         window.google.accounts.id.initialize({
-          client_id: AUTH.GOOGLE_CLIENT_ID,
+          client_id: 1087619731116-utlg97qvkdb0p50am9ovhk5ku99bqjrr.apps.googleusercontent.com,
           callback: function (response) {
             var claims = decodeJwt(response.credential);
             if (!claims || !claims.email) { return say('Google did not return an account.', true); }
