@@ -1,10 +1,13 @@
 # teriboy.com
 
-A teriyaki-focused restaurant website. Grilled meats, tofu and seafood glazed in a sweet
-soy-based teriyaki sauce, served over rice or noodles with a side of vegetables.
+A teriyaki restaurant website. Grilled meats, tofu and seafood glazed in a sweet soy-based
+teriyaki sauce, served over rice or noodles with a side of vegetables.
 
-Static HTML, CSS and vanilla JavaScript — no build step, no dependencies, no framework.
-Open `index.html` in a browser and it runs; drop the folder on any host and it ships.
+Serving **NAS Lemoore** — sailors, civilian staff and their families — starting with delivery
+inside the base to **Main Side** and **Ops Side**.
+
+Static HTML, CSS and vanilla JavaScript. No build step, no dependencies, no framework. Open
+`index.html` in a browser and it runs; drop the folder on any host and it ships.
 
 ## The ordering model
 
@@ -13,11 +16,44 @@ Teriboy is a **next-day kitchen**, and the whole site is built around that rule:
 - Order **before 9:00 PM tonight** → delivered **tomorrow**.
 - Order **after 9:00 PM** → the order page automatically moves you to the following day.
 - The customer picks the window at checkout: **lunch 11:00 AM – 1:30 PM** or
-  **dinner 5:00 PM – 8:00 PM** — same next day either way.
+  **dinner 5:00 PM – 8:00 PM** — same next day, their call.
 
 This is enforced in [`assets/js/main.js`](assets/js/main.js): the delivery date field's `min`
-and default value are computed from the cut-off, a live countdown runs in the header badge,
-and every `data-cutoff-date` element on the site prints the real earliest delivery date.
+and default value are computed from the cut-off, a live countdown runs in the header badge, and
+every `data-cutoff-date` element on the site prints the real earliest delivery date.
+
+## Payment: Zelle + the Julian code
+
+No payment is taken on the website. When an order is submitted, the site issues a **payment
+code** and shows it with your Zelle QR code, asking the customer to type the code in the Zelle
+memo field so you can match the transfer to the food.
+
+**Code format** — `<sequence>-<YY><DDD>`:
+
+| Part | Meaning | Example |
+| --- | --- | --- |
+| sequence | Order number for that day, starting at 1 | `1` |
+| YY | Last two digits of the year | `26` |
+| DDD | Day of the year since 1 January | `253` |
+
+So the first order on 10 September 2026 is stored as `00001-26253` and **displayed to the
+customer as `1-26253`**, exactly as specified. Both forms are sent to you: the short one in the
+`payment_code` field, and `1-26253  [00001-26253]` at the bottom of the itemised order.
+
+The QR shown on the confirmation screen is [`assets/img/zelle-qr.jpg`](assets/img/zelle-qr.jpg).
+Replace that one file if your Zelle account ever changes.
+
+### The one caveat worth knowing
+
+The site is static — there is no server keeping a counter. The daily sequence lives in the
+customer's own browser (`localStorage`), so **two different customers ordering on the same day
+can both be given `1-26253`.** The number only increments for repeat orders from the same
+device.
+
+In practice each Formspree email still carries the name, the amount, the delivery date and the
+timestamp, so two identical codes remain easy to tell apart — but if order volume grows, the
+clean fix is a small backend (or a form service with a sequence field) that hands out the number
+authoritatively. Until then, treat the code as a matching hint rather than a guaranteed unique key.
 
 ## Pages
 
@@ -25,14 +61,14 @@ and every `data-cutoff-date` element on the site prints the real earliest delive
 | --- | --- |
 | [index.html](index.html) | Home — hero, how it works, signature dishes, the glaze, services, reviews |
 | [about.html](about.html) | Story, values, milestones, the team |
-| [services.html](services.html) | Delivery, office catering, party trays, meal plans, live grill events, pickup |
+| [services.html](services.html) | Delivery, command catering, party trays, meal plans, live grill events, pickup |
 | [menu.html](menu.html) | Full menu with category filters and "add to order" links |
-| [order.html](order.html) | Order builder — quantity steppers, live totals, cut-off logic, Formspree |
+| [order.html](order.html) | Order builder — steppers, live totals, cut-off logic, Zelle confirmation |
 | [video.html](video.html) | Feature film and clip gallery |
 | [contact.html](contact.html) | Formspree contact form, kitchen details, hours, quick FAQs |
-| [faqs.html](faqs.html) | Accordion FAQs — ordering, delivery, food, catering, payments |
+| [faqs.html](faqs.html) | Accordion FAQs — ordering, delivery, food, catering, payment codes |
 | [terms.html](terms.html) | Terms of Service |
-| [privacy.html](privacy.html) | Privacy Policy (includes the Formspree processing disclosure) |
+| [privacy.html](privacy.html) | Privacy Policy (covers Formspree and what Zelle does not share) |
 | [404.html](404.html) | Not-found page |
 
 Header menu: Home · About · Services · Menu · Order · Video · Contact
@@ -46,12 +82,12 @@ Both forms post to your Formspree endpoint:
 https://formspree.io/f/xjyvjzjg
 ```
 
-They submit over `fetch` with `Accept: application/json`, so the visitor stays on the page and
-gets an inline success panel instead of a Formspree redirect. Each form sends a `form_type`
-field (`Order` or `Contact`) and its own `_subject`, so the two are easy to tell apart in your
-inbox, and both carry a hidden `_gotcha` honeypot for spam.
+They submit over `fetch` with `Accept: application/json`, so the visitor stays on the page. Each
+form sends a `form_type` field (`Order` or `Contact`) and its own `_subject`, so the two are easy
+to tell apart in your inbox, and both carry a hidden `_gotcha` honeypot for spam.
 
-The order form also sends `order_details` — a plain-text itemised receipt built by JavaScript:
+An order email includes `payment_code`, `base_area` (Main Side / Ops Side), `command`, `payment`
+and an itemised `order_details` receipt:
 
 ```
 2 x Chicken Teriyaki @ $13.50 = $27.00
@@ -62,35 +98,46 @@ Delivery: $4.90
 TOTAL: $49.80
 Delivery date: 2026-09-11
 Delivery slot: Lunch (11:00 AM - 1:30 PM)
+PAYMENT: Zelle
+PAYMENT CODE (Zelle memo): 1-26253  [00001-26253]
 ```
 
-**No payment is taken on the site.** The customer chooses cash on delivery or a card link
-emailed after confirmation — keep it that way unless you add a real payment processor.
+## Delivery areas
 
-## Things to change before going live
+Currently on base only. Flat **$4.90**, free over **$60**, no minimum, pickup free.
 
-Everything below is placeholder content standing in for your real details:
+- **Main Side** — housing, admin buildings, the NEX area, the schools.
+- **Ops Side** — squadron spaces, hangars, flight line buildings.
+- **Off base** — Lemoore town and Hanford are described as "next" on the services page.
 
-1. **Phone** — `(206) 555-0142` (a reserved fictional number). Appears in the footer, contact
-   page, FAQs, terms, privacy, the JSON-LD block and one error message in `main.js`.
-2. **Address** — `Ember Lane Food Hall, Unit 12, Seattle, WA 98101`.
-3. **Email** — `hello@teriboy.com`, `catering@teriboy.com`, `privacy@teriboy.com`.
-4. **Social links** — the footer icons point at bare `instagram.com`, `facebook.com`,
-   `tiktok.com` and `youtube.com`. Swap in your profile URLs.
-5. **Prices and currency** — menu prices live in the HTML; the order builder reads them from
-   `data-price` on each `.pick-row`. Currency, delivery fee and free-delivery threshold are
-   constants at the top of `main.js` (`CURRENCY`, `DELIVERY_FEE`, `FREE_DELIVERY_OVER`).
-6. **Delivery zones and fees** — described on `services.html`, `faqs.html` and `terms.html`.
-7. **Videos** — every clip on `video.html` carries an empty `data-video` attribute. Paste an
-   embed URL to make it play:
+The order form asks for the base area, the delivery point, and building/command/squadron. If
+your driver arrangements differ — escorts, gate meets, who can get where — the wording lives in
+[services.html](services.html), [faqs.html](faqs.html) and [terms.html](terms.html).
+
+## Still placeholder — change before going live
+
+1. **Emails** — `hello@teriboy.com`, `catering@teriboy.com`, `privacy@teriboy.com`.
+2. **Social links** — the footer icons point at bare `instagram.com`, `facebook.com`,
+   `tiktok.com`, `youtube.com`.
+3. **Prices** — menu prices live in the HTML; the order builder reads them from `data-price` on
+   each `.pick-row`. Currency, delivery fee and the free-delivery threshold are constants at the
+   top of `main.js` (`CURRENCY`, `DELIVERY_FEE`, `FREE_DELIVERY_OVER`).
+4. **The team and the story** — names, dates and milestones on [about.html](about.html) are
+   invented. So are the three reviews on the home page.
+5. **Videos** — every clip on `video.html` has an empty `data-video`. Paste an embed URL to make
+   it play:
    ```html
    <div class="video-card__thumb" data-video="https://www.youtube.com/embed/XXXXXXXXXXX">
    ```
    Until then, clicking shows a "publishing soon" state instead of a broken player.
-8. **Legal pages** — `terms.html` and `privacy.html` are written for this business model but
-   are not legal advice. Have them reviewed, and update the "Last updated" dates.
-9. **Domain references** — `sitemap.xml`, `robots.txt` and the canonical/Open Graph tags all
-   assume `https://teriboy.com/`.
+6. **Legal pages** — written for this business model, but not legal advice. Have them reviewed
+   and update the "Last updated" dates.
+7. **A Zelle name or number in text.** The confirmation screen shows the QR only. Some people
+   pay from the same phone they are reading on and cannot scan their own screen — the page tells
+   them to screenshot it, but a written Zelle handle next to the QR is friendlier. Add it in
+   `zelleBlock()` in `main.js` if you want one.
+
+Contact details are live and correct: **(619) 730-8655**, **676 Siena Way, Lemoore, CA 93245**.
 
 ## Menu ↔ order page
 
@@ -100,9 +147,8 @@ The "+ Add to order" links on the menu page pass a dish name to the order builde
 order.html?add=Chicken%20Teriyaki
 ```
 
-The name must match a `data-name` on a `.pick-row` in `order.html` exactly, or the link
-silently does nothing. All 14 links currently match. Add a dish to the order page and you can
-link to it the same way.
+The name must match a `data-name` on a `.pick-row` in `order.html` exactly, or the link silently
+does nothing. All 14 links currently match.
 
 ## Design
 
@@ -111,18 +157,16 @@ Black theme, red accent, gold detailing.
 - Colours, spacing, radii and fonts are CSS custom properties at the top of
   [`assets/css/style.css`](assets/css/style.css) — change `--red` or `--gold` once and the whole
   site follows.
-- Fonts: **Marcellus** for headings, **Inter** for body, loaded from Google Fonts.
-- Dish artwork is inline SVG, not photography — nothing to optimise and nothing to break.
-  Replacing it with real food photos is the single biggest visual upgrade available.
-- Sections fade in on scroll. Content is visible by default and only hidden once the page
-  confirms JavaScript is running, so the site still reads with JS disabled.
-- Responsive down to 320px; the nav becomes a slide-in drawer below 1024px.
-- Honours `prefers-reduced-motion` and has a print stylesheet.
+- Fonts: **Marcellus** for headings, **Inter** for body, from Google Fonts.
+- Dish artwork is inline SVG, not photography. Replacing it with real food photos is the single
+  biggest visual upgrade available.
+- **Mobile menu** is a full-screen panel sized in `vh` units so all seven links and the Order
+  Now button fit on one screen with no scrolling, down to short landscape phones. The brand and
+  close button are layered above it so the menu can always be dismissed.
+- Content is visible with JavaScript disabled; `prefers-reduced-motion` is honoured.
+- Responsive to 320px.
 
 ## Deploying
 
-Any static host works — Netlify, Vercel, GitHub Pages, Cloudflare Pages or plain shared
-hosting. Upload the folder as-is. There is nothing to build and nothing to install.
-
-For GitHub Pages, push to the default branch and point Pages at the repository root. Most hosts
-pick up `404.html` automatically.
+Any static host works. This repo has a `CNAME` for **teriboy.com**, so GitHub Pages serves it
+from the repository root — push to `main` and it publishes. There is nothing to build.

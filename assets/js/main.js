@@ -309,6 +309,138 @@
     updateSummary();
   }
 
+  /* ------------------------------------------------ payment code (Julian) */
+  // 00001-26253 -> order 1, day 253 of 2026. Shown to the customer as 1-26253.
+  function julianStamp(d) {
+    var days = Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) -
+                           Date.UTC(d.getFullYear(), 0, 0)) / 86400000);
+    return String(d.getFullYear() % 100).padStart(2, '0') + String(days).padStart(3, '0');
+  }
+
+  function nextPaymentCode() {
+    var stamp = julianStamp(new Date());
+    var key = 'teriboy.seq.' + stamp;
+    var seq = 1;
+    try {
+      var stored = parseInt(window.localStorage.getItem(key), 10);
+      if (stored > 0) { seq = stored + 1; }
+    } catch (e) { /* private browsing - start the day again at 1 */ }
+    return {
+      seq: seq,
+      stamp: stamp,
+      key: key,
+      code: seq + '-' + stamp,
+      full: String(seq).padStart(5, '0') + '-' + stamp
+    };
+  }
+
+  // Only burn a number once the order has actually been accepted.
+  function commitPaymentCode(info) {
+    try { window.localStorage.setItem(info.key, String(info.seq)); } catch (e) {}
+  }
+
+  /* --------------------------------------------------- order confirmation */
+  function orderSnapshot() {
+    var slot = $('input[name="delivery_slot"]:checked');
+    var pay = $('input[name="payment"]:checked');
+    var area = $('input[name="base_area"]:checked');
+    var hint = $('#delivery-date-hint');
+    var total = $('#sum-total');
+    return {
+      total: total ? total.textContent : '',
+      slot: slot ? slot.value : '',
+      payment: pay ? pay.value : '',
+      area: area ? area.value : '',
+      dateText: hint ? hint.textContent.replace(/^Delivering\s*/, '').replace(/\.$/, '') : ''
+    };
+  }
+
+  function zelleBlock(info, snap) {
+    return '' +
+      '<div class="confirm__code">' +
+        '<span class="confirm__code-label">Your payment code</span>' +
+        '<strong class="confirm__code-value">' + info.code + '</strong>' +
+        '<button class="btn btn--sm btn--ghost" type="button" data-copy="' + info.code + '">Copy code</button>' +
+      '</div>' +
+      '<div class="zelle">' +
+        '<figure class="zelle__qr">' +
+          '<img src="assets/img/zelle-qr.jpg" alt="Zelle QR code for paying Teriboy" width="300" height="300">' +
+          '<figcaption>Scan with your banking app</figcaption>' +
+        '</figure>' +
+        '<div class="zelle__body">' +
+          '<h3>Send <span class="gold">' + snap.total + '</span> with Zelle</h3>' +
+          '<ol class="numbered">' +
+            '<li>Open your banking app and choose <strong>Zelle</strong>.</li>' +
+            '<li>Scan the QR code to load our details.</li>' +
+            '<li>Enter <strong class="gold">' + info.code + '</strong> in the <strong>memo</strong> field.</li>' +
+            '<li>Send the exact total, <strong>' + snap.total + '</strong>, before tonight&rsquo;s 9:00 PM cut-off.</li>' +
+          '</ol>' +
+          '<p class="muted">Paying from this phone? Screenshot the QR code, then pick it from your photos inside the Zelle screen. ' +
+          'The memo code is the only thing that ties your transfer to your food, so please do not leave it blank.</p>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function cashBlock(snap) {
+    return '' +
+      '<div class="notice">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg>' +
+        '<div><strong>Paying cash on delivery</strong>' +
+        'Have <strong>' + snap.total + '</strong> ready for the driver. Changed your mind and want to pay by Zelle instead? ' +
+        'Call us on (619) 730-8655 and we will give you a payment code.</div>' +
+      '</div>';
+  }
+
+  function showOrderConfirmation(info, snap) {
+    var box = $('#order-confirm');
+    var form = $('#order-form');
+    if (!box || !form) { return false; }
+
+    var paidByZelle = snap.payment.indexOf('Zelle') === 0;
+    box.innerHTML = '' +
+      '<div class="confirm__head">' +
+        '<span class="confirm__tick" aria-hidden="true">' +
+          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '</span>' +
+        '<h2>Order received</h2>' +
+        '<p class="lead">Delivering <strong>' + (snap.dateText || 'as scheduled') + '</strong>' +
+        (snap.slot ? ' &mdash; ' + snap.slot : '') + (snap.area ? ', ' + snap.area : '') + '.' +
+        ' A confirmation is on its way to your inbox.</p>' +
+      '</div>' +
+      (paidByZelle ? zelleBlock(info, snap) : cashBlock(snap)) +
+      '<div class="btn-row btn-row--center">' +
+        '<a class="btn btn--ghost" href="menu.html">Back to the menu</a>' +
+        '<a class="btn btn--ghost" href="faqs.html">Questions about payment</a>' +
+      '</div>';
+
+    form.hidden = true;
+    box.hidden = false;
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    var copy = $('[data-copy]', box);
+    if (copy) {
+      copy.addEventListener('click', function () {
+        var text = copy.getAttribute('data-copy');
+        var done = function () {
+          copy.textContent = 'Copied';
+          setTimeout(function () { copy.textContent = 'Copy code'; }, 2200);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, done);
+        } else {
+          var tmp = document.createElement('input');
+          tmp.value = text;
+          document.body.appendChild(tmp);
+          tmp.select();
+          try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(tmp);
+          done();
+        }
+      });
+    }
+    return true;
+  }
+
   /* ------------------------------------------------------ Formspree submit */
   function initForms() {
     $$('form[data-ajax]').forEach(function (form) {
@@ -327,6 +459,23 @@
           return;
         }
 
+        var isOrder = form.id === 'order-form';
+        var codeInfo = null;
+        var snap = null;
+
+        if (isOrder) {
+          codeInfo = nextPaymentCode();
+          snap = orderSnapshot();
+          var codeField = $('#payment-code');
+          if (codeField) { codeField.value = codeInfo.code; }
+          var details = $('#order-details');
+          if (details) {
+            details.value += '\n' +
+              'PAYMENT: ' + snap.payment + '\n' +
+              'PAYMENT CODE (Zelle memo): ' + codeInfo.code + '  [' + codeInfo.full + ']';
+          }
+        }
+
         var label = button ? button.textContent : '';
         if (button) { button.disabled = true; button.textContent = 'Sending...'; }
         if (status) { status.className = 'form-status'; status.textContent = ''; }
@@ -337,6 +486,11 @@
           headers: { Accept: 'application/json' }
         }).then(function (res) {
           if (res.ok) {
+            var shown = false;
+            if (isOrder) {
+              commitPaymentCode(codeInfo);
+              shown = showOrderConfirmation(codeInfo, snap);
+            }
             form.reset();
             $$('.pick-row').forEach(function (row) {
               $('output', row).value = 0;
@@ -346,7 +500,7 @@
             });
             initDateField();
             updateSummary();
-            if (status) {
+            if (status && !shown) {
               status.className = 'form-status is-ok';
               status.textContent = form.getAttribute('data-success') ||
                 'Thank you! We have received your message and will reply shortly.';
@@ -361,7 +515,7 @@
           if (status) {
             status.className = 'form-status is-err';
             status.textContent = 'Sorry, something went wrong (' + err.message +
-              '). Please call us on (206) 555-0142 and we will take your order by phone.';
+              '). Please call us on (619) 730-8655 and we will take your order by phone.';
           }
         }).then(function () {
           if (button) { button.disabled = false; button.textContent = label; }

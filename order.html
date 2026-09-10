@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>document.documentElement.className += " js";</script>
 <title>Order Online | Next-Day Teriyaki Delivery | Teriboy</title>
-<meta name="description" content="Build your Teriboy order before the 9:00 PM cut-off and choose next-day lunch or dinner delivery. Live totals, free delivery over $60, no payment taken online.">
+<meta name="description" content="Build your Teriboy order before the 9:00 PM cut-off and choose next-day lunch or dinner delivery. Pay by Zelle using the payment code we issue. Free delivery over $60.">
 <link rel="canonical" href="https://teriboy.com/order.html">
 <meta name="theme-color" content="#070707">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Teriboy">
 <meta property="og:title" content="Order Online | Next-Day Teriyaki Delivery | Teriboy">
-<meta property="og:description" content="Build your Teriboy order before the 9:00 PM cut-off and choose next-day lunch or dinner delivery. Live totals, free delivery over $60, no payment taken online.">
+<meta property="og:description" content="Build your Teriboy order before the 9:00 PM cut-off and choose next-day lunch or dinner delivery. Pay by Zelle using the payment code we issue. Free delivery over $60.">
 <meta property="og:url" content="https://teriboy.com/order.html">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
@@ -69,7 +69,7 @@
   <div class="container">
     <p class="breadcrumb"><a href="index.html">Home</a> / <span>Order</span></p>
     <h1>Order tonight.<br>Eat tomorrow.</h1>
-    <p class="lead">Place your order before <span class="gold">9:00 PM</span> and it goes on the grill first thing in the morning. Choose the lunch or dinner window that suits you &mdash; same next day, your call.</p>
+    <p class="lead">Place your order before <span class="gold">9:00 PM</span> and it goes on the grill first thing in the morning. Choose the lunch or dinner window that suits you &mdash; same next day, your call. Nothing is charged on this page: you pay by Zelle once we hand you a payment code.</p>
     <p class="badge mt-1"><span class="dot"></span> Cut-off in <span data-countdown>--h --m --s</span></p>
   </div>
 </section>
@@ -84,6 +84,7 @@
       <input type="hidden" name="form_type" value="Order">
       <input type="hidden" name="order_details" id="order-details" value="">
       <input type="hidden" name="order_total" id="order-total" value="">
+      <input type="hidden" name="payment_code" id="payment-code" value="">
       <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="display:none" aria-hidden="true">
 
       <!-- ---------------------------------------------------- LEFT -->
@@ -287,7 +288,7 @@
             </div>
             <div class="field">
               <label for="phone">Mobile number <span class="req">*</span></label>
-              <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="(206) 555-0142" required>
+              <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="(619) 730-8655" required>
             </div>
           </div>
 
@@ -298,38 +299,48 @@
           </div>
 
           <div class="field">
-            <label for="address">Delivery address <span class="req">*</span></label>
-            <input type="text" id="address" name="address" autocomplete="street-address" placeholder="Street, unit or floor, building name" required>
+            <label>Where on base? <span class="req">*</span></label>
+            <div class="radio-grid">
+              <label class="radio-card">
+                <input type="radio" name="base_area" value="Main Side" checked>
+                <span>Main Side <small>Housing, NEX, admin, schools</small></span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="base_area" value="Ops Side">
+                <span>Ops Side <small>Squadrons, hangars, flight line</small></span>
+              </label>
+            </div>
           </div>
 
-          <div class="field-row">
-            <div class="field">
-              <label for="city">City <span class="req">*</span></label>
-              <input type="text" id="city" name="city" autocomplete="address-level2" placeholder="Seattle" required>
-            </div>
-            <div class="field">
-              <label for="zip">Postcode <span class="req">*</span></label>
-              <input type="text" id="zip" name="zip" autocomplete="postal-code" placeholder="98101" required>
-            </div>
+          <div class="field">
+            <label for="address">Delivery point <span class="req">*</span></label>
+            <input type="text" id="address" name="address" autocomplete="street-address" placeholder="Street and quarters, or building and room" required>
+            <span class="hint">Off base? Put the full address here and we will confirm whether we can reach you.</span>
+          </div>
+
+          <div class="field">
+            <label for="command">Building, command or squadron</label>
+            <input type="text" id="command" name="command" placeholder="VFA-25, Bldg 760, base housing...">
+            <span class="hint">Helps the driver find you without calling twice.</span>
           </div>
 
           <div class="field">
             <label>Payment <span class="req">*</span></label>
             <div class="radio-grid">
               <label class="radio-card">
-                <input type="radio" name="payment" value="Cash on delivery" checked>
-                <span>Cash on delivery <small>Pay the driver</small></span>
+                <input type="radio" name="payment" value="Zelle" checked>
+                <span>Zelle <small>Code and QR on the next screen</small></span>
               </label>
               <label class="radio-card">
-                <input type="radio" name="payment" value="Card link by email">
-                <span>Card link <small>We email a secure link</small></span>
+                <input type="radio" name="payment" value="Cash on delivery">
+                <span>Cash on delivery <small>Pay the driver</small></span>
               </label>
             </div>
           </div>
 
           <div class="field">
             <label for="notes">Notes for the kitchen</label>
-            <textarea id="notes" name="notes" placeholder="Allergies, gluten-free tamari glaze, spice level, gate codes, where to leave it, per-dish base swaps..."></textarea>
+            <textarea id="notes" name="notes" placeholder="Allergies, gluten-free tamari glaze, spice level, gate or escort needs, where to leave it, per-dish base swaps..."></textarea>
           </div>
 
           <label class="check">
@@ -361,16 +372,31 @@
         </div>
 
         <div class="panel">
+          <h4 style="font-family:var(--ff-body);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem">How payment works</h4>
+          <ol class="numbered">
+            <li>Place your order. <strong>Nothing is charged on this page.</strong></li>
+            <li>We hand you a payment code that looks like <strong class="gold">1-26253</strong>.</li>
+            <li>Scan the Zelle QR on the confirmation screen and send the exact total.</li>
+            <li>Type the code in the Zelle <strong>memo</strong> field so we can match it to your food.</li>
+          </ol>
+          <p class="form-note" style="text-align:left;margin-top:1rem">Prefer to pay the driver in cash? Choose that option in step 3 and skip all of this.</p>
+        </div>
+
+        <div class="panel">
           <h4 style="font-family:var(--ff-body);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 1rem">Good to know</h4>
           <ul class="checklist">
             <li><span>Cut-off is <strong>9:00 PM</strong>. After that, the earliest window is the following day.</span></li>
-            <li><span>Change or cancel free of charge until the cut-off &mdash; call <a class="gold" href="tel:+12065550142">(206) 555-0142</a>.</span></li>
+            <li><span>Delivery is flat <strong>$4.90</strong> to Main Side or Ops Side, free over $60.</span></li>
+            <li><span>Change or cancel free of charge until the cut-off &mdash; call <a class="gold" href="tel:+16197308655">(619) 730-8655</a>.</span></li>
             <li><span>Gluten-free tamari glaze on any dish, no extra charge. Say so in the notes.</span></li>
             <li><span>Catering for ten or more? <a class="gold" href="contact.html">Ask for a quote</a> instead.</span></li>
           </ul>
         </div>
       </aside>
     </form>
+
+    <!-- Populated by main.js once the order is accepted. -->
+    <div id="order-confirm" class="confirm" hidden></div>
   </div>
 </section>
 
@@ -449,9 +475,9 @@
         <ul class="footer-list">
           <li><strong>Order cut-off:</strong> 9:00 PM daily</li>
           <li><strong>Delivery:</strong> next-day lunch 11:00 AM &ndash; 1:30 PM or dinner 5:00 PM &ndash; 8:00 PM</li>
-          <li><a href="tel:+12065550142">(206) 555-0142</a></li>
+          <li><a href="tel:+16197308655">(619) 730-8655</a></li>
           <li><a href="mailto:hello@teriboy.com">hello@teriboy.com</a></li>
-          <li>Ember Lane Food Hall, Unit 12<br>Seattle, WA 98101</li>
+          <li>676 Siena Way<br>Lemoore, CA 93245</li>
         </ul>
       </div>
     </div>
