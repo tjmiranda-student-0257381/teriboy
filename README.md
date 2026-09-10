@@ -129,57 +129,80 @@ orders to land here automatically — that is the point to move the ledger to a 
 
 ## Locking the workbook
 
-`admin.html` ships with a sign-in gate in [`assets/js/admin-auth.js`](assets/js/admin-auth.js):
-Google sign-in restricted to an allowlist, then a 6-digit code from Google Authenticator. Until
-you configure it, the workbook shows a red "not locked yet" banner with a setup button.
+`admin.html` ships with a sign-in gate in [`assets/js/admin-auth.js`](assets/js/admin-auth.js).
+Until you configure it, the workbook shows a red "not locked yet" banner with a **Set up the
+lock** button that walks you through it. There are three ways to lock it and you only need one.
 
-### Be clear about what this is
+### A. Passphrase — easiest, no setup
 
-This is a static site. There is no server, so **every check runs in the visitor's browser and can
-be bypassed** by anyone who opens dev tools, disables JavaScript, or reads `admin-auth.js`. The
-books themselves live in `localStorage` and are readable the same way.
+Press **Set up the lock**, type a phrase, press **Generate**. It prints two lines:
 
-It is a lock on a drawer. It stops someone who wanders up to an unlocked laptop or guesses the
-URL. It does not stop someone who is actually trying. Worse, **this repository is public**, so a
-TOTP secret committed here is readable by anyone — they could generate valid codes.
+```js
+PASSPHRASE_SALT: 'f425149a063817b5',
+PASSPHRASE_SHA256: '8437cc07f8d8a99433f5ba3ed2a41a2098b39bed17c71210b28f27bda1199e0f',
+```
 
-So: use it for convenience now, and use Cloudflare Access before you handle real customer data.
+Paste them over the blank ones in `admin-auth.js` and reload. Done — no accounts, no phone app,
+and it works even when you open the file directly from disk.
 
-### Turning it on (browser gate)
+The phrase itself is never stored, only a salted SHA-256 hash of it, so nobody reading the file
+can read your phrase back out.
 
-1. **Google sign-in** — in [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
-   create an *OAuth 2.0 Client ID* of type *Web application*. Add `https://teriboy.com` to
-   **Authorised JavaScript origins**. Paste the client ID into `AUTH.GOOGLE_CLIENT_ID`.
-   `AUTH.ALLOWED_EMAILS` is already set to `miranda.tracyjon.n@gmail.com`.
-2. **Google Authenticator** — open the workbook, press **Set up the lock**, and it generates a
-   base32 secret. Add it in Authenticator via *Enter a setup key* (time based), then paste the
-   same key into `AUTH.TOTP_SECRET`.
-3. Reload. Either step alone activates the gate; configure both for two factors.
+> **Do not use your Gmail password here.** This repository is public. A hash is not reversible,
+> but it is still worth attacking, and that one password is the recovery route into every other
+> account you own. Pick a phrase you use nowhere else.
 
-Codes are checked with a ±30-second window, so a slightly drifting phone still works. The unlock
-lasts `SESSION_HOURS` (8) and is forgotten when the browser closes.
+### B. Sign in with Google — recommended
 
-Two things that will bite you locally: Google sign-in needs the real domain in the origins list,
-and Authenticator codes need `crypto.subtle`, which browsers only expose over **HTTPS or
-localhost** — opening the file directly with `file://` will not verify codes.
+This is "log in with my Gmail and password" done safely: **Google** collects the password on
+google.com, and this page only ever sees which account came back. Your password never touches
+the site.
+
+1. Open [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials).
+2. **Create credentials → OAuth client ID → Web application.**
+3. Under **Authorised JavaScript origins** add `https://teriboy.com`.
+4. Copy the client ID into `AUTH.GOOGLE_CLIENT_ID` and reload.
+
+`AUTH.ALLOWED_EMAILS` is already set to `miranda.tracyjon.n@gmail.com`, so only that account gets
+in. If your Google account has 2-step verification switched on, Google applies it during sign-in
+— which gives you the authenticator step without this page having to manage one.
+
+Google sign-in needs the real domain in the origins list, so test it on teriboy.com rather than
+from a local file.
+
+### C. Authenticator codes — optional
+
+If you ever do set up an authenticator app, paste the **setup key** into `AUTH.TOTP_SECRET`. It
+must be the long string of letters the app shows when adding an account, **not** one of the
+6-digit codes — a 6-digit code there locks the page with a key nothing can match. The gate now
+detects that mistake and tells you how to fix it instead of locking you out. Codes are checked
+with a ±30-second window, and this step needs HTTPS or localhost.
+
+Set two of the three and the gate asks for both, in order: Google, then passphrase, then code.
+An unlock lasts `SESSION_HOURS` (8) and is forgotten when the browser closes.
+
+### What this is, honestly
+
+teriboy.com is a static site. There is no server, so **every check runs in the visitor's browser
+and can be bypassed** by anyone who opens dev tools, disables JavaScript, or reads
+`admin-auth.js`. The books live in `localStorage` and are readable the same way.
+
+It is a lock on a drawer: it stops someone who wanders up to an unlocked laptop or guesses the
+URL. It does not stop someone who is actually trying.
 
 ### Doing it properly — Cloudflare Access
 
-This gives you exactly what you asked for, Google login plus Authenticator, checked **before the
-page is ever served**, and it is free for small teams:
+Free for small teams, and it checks people **before the page is ever served**:
 
-1. Move `teriboy.com` to Cloudflare DNS (free plan) and keep the GitHub Pages records
+1. Move `teriboy.com` to Cloudflare DNS (free plan), keeping the GitHub Pages records
    **proxied** (orange cloud).
 2. In the Cloudflare **Zero Trust** dashboard: *Access → Applications → Add an application →
    Self-hosted*. Domain `teriboy.com`, path `admin.html`.
-3. Add a policy: *Action: Allow*, *Include: Emails → miranda.tracyjon.n@gmail.com*.
-4. Under *Settings → Authentication*, enable **Google** as a login method. Because it is your
-   Google account doing the sign-in, the 2-step verification on that account — Authenticator
-   included — applies automatically.
-5. Optionally set the session length to match your shift.
+3. Policy: *Action: Allow*, *Include: Emails → miranda.tracyjon.n@gmail.com*.
+4. *Settings → Authentication*: enable **Google** as a login method. Your account's own 2-step
+   verification then applies automatically.
 
-Once that is in place the browser gate is redundant; leave `AUTH.GOOGLE_CLIENT_ID` and
-`AUTH.TOTP_SECRET` blank and Cloudflare does the work.
+Once that is live the browser gate is redundant — leave all three config values blank.
 
 ## Pages
 
